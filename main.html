@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Calculadora de Paneles Solares</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <style>
+    :root {
+      --primary: #2d6a4f;
+      --secondary: #f4a261;
+      --accent: #e9c46a;
+      --background: #f0f7f4;
+      --text: #264653;
+      --white: #fff;
+    }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: var(--background);
+      color: var(--text);
+      margin: 0;
+      padding: 20px;
+    }
+
+    h1, h3, h4 {
+      color: var(--primary);
+    }
+
+    .container {
+      max-width: 800px;
+      margin: auto;
+      background: var(--white);
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    input[type="number"] {
+      width: 100px;
+      padding: 8px;
+      margin-top: 4px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+
+    label {
+      display: flex;
+      flex-direction: column;
+      font-size: 14px;
+    }
+
+    button {
+      padding: 10px 20px;
+      background-color: var(--primary);
+      color: var(--white);
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+      margin-top: 10px;
+    }
+
+    button:hover {
+      background-color: var(--secondary);
+    }
+
+    table {
+      width: 100%;
+      margin-top: 20px;
+      border-collapse: collapse;
+      background-color: var(--white);
+    }
+    #page-content {
+  padding-top: 40px;
+}
+    th, td {
+      padding: 10px;
+      text-align: center;
+      border: 1px solid #ccc;
+    }
+
+    th {
+      background-color: var(--accent);
+      color: var(--text);
+    }
+
+    tr:nth-child(even) {
+      background-color: #f9f9f9;
+    }
+
+    .section {
+      margin-top: 30px;
+    }
+
+    .input-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px 20px;
+      margin-bottom: 20px;
+    }
+
+    .download-btn {
+      background-color: var(--secondary);
+      color: var(--white);
+      margin-top: 20px;
+    }
+
+    @media (max-width: 600px) {
+      input[type="number"] {
+        width: 80px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container" id="page-content">
+    <h1><img src="imagenes/unnamed.png" alt="Logo" style="height: 120px; vertical-align: middle; margin-right: 10px;">
+        Calculadora de Paneles Solares</h1>
+    <p>Ingresa el consumo bimestral de los últimos 11 bimestres y el porcentaje de inflación.</p>
+
+    <div class="section">
+      <h3>🔢 Bimestres:</h3>
+      <div id="inputs" class="input-grid">
+        <label>Bimestre 1: <input type="number" step="any" id="val1" /></label>
+        <label>Bimestre 2: <input type="number" step="any" id="val2" /></label>
+        <label>Bimestre 3: <input type="number" step="any" id="val3" /></label>
+        <label>Bimestre 4: <input type="number" step="any" id="val4" /></label>
+        <label>Bimestre 5: <input type="number" step="any" id="val5" /></label>
+        <label>Bimestre 6: <input type="number" step="any" id="val6" /></label>
+        <label>Bimestre 7: <input type="number" step="any" id="val7" /></label>
+        <label>Bimestre 8: <input type="number" step="any" id="val8" /></label>
+        <label>Bimestre 9: <input type="number" step="any" id="val9" /></label>
+        <label>Bimestre 10: <input type="number" step="any" id="val10" /></label>
+        <label>Bimestre 11: <input type="number" step="any" id="val11" /></label>
+      </div>
+
+      <div style="display: flex; gap: 20px; flex-wrap: wrap; margin-top: 10px;">
+        <label>📈 Porcentaje de inflación (%): 
+          <input type="number" id="interest" step="any"/>
+        </label>
+        <label>🔌 Potencia disponible (Watts): 
+          <input type="number" id="wattage" step="any"/>
+        </label>
+      </div>
+      
+
+      <button onclick="calculate()">Calcular</button>
+    </div>
+
+    <div class="section" id="results"></div>
+    <div class="section" id="table-section"></div>
+    <button class="download-btn" onclick="downloadPDF()">📄 Descargar resumen en PDF</button>
+  </div>
+
+  <script>
+    function calculate() {
+      const values = [];
+      for (let i = 1; i <= 11; i++) {
+        const val = parseFloat(document.getElementById(`val${i}`).value);
+        if (isNaN(val)) {
+          alert(`Por favor ingresa un valor válido para el Bimestre ${i}`);
+          return;
+        }
+        values.push(val);
+      }
+
+      const interest = parseFloat(document.getElementById('interest').value);
+      if (isNaN(interest)) {
+        alert("Por favor ingresa un porcentaje de inflación válido.");
+        return;
+      }
+
+      const avg = values.reduce((a, b) => a + b, 0) / values.length;
+
+// Step-by-step calculations, rounded to 2 decimals except for Step 6
+const step2 = Math.round(avg * 100) / 100;               // Step 2: Rounded to 2 decimals
+const step3 = Math.round((step2 / 60) * 100) / 100;      // Step 3: Rounded to 2 decimals
+const step4 = Math.round((step3 / 5) * 100) / 100;       // Step 4: Rounded to 2 decimals
+const step5 = Math.round((step4 * 1.2) * 100) / 100;     // Step 5: Rounded to 2 decimals
+
+// Wattage input and validation
+const wattage = parseFloat(document.getElementById("wattage").value);
+if (isNaN(wattage) || wattage <= 0) {
+  alert("Por favor ingresa una potencia disponible válida en Watts.");
+  return;
+}
+
+// Step 6: Rounded up to the nearest whole number
+const step6 = Math.ceil((step5 / wattage) * 1000); // This rounds up to the nearest whole number
+
+// Total sum of all values (rounded to 2 decimals)
+const total = Math.round(values.reduce((a, b) => a + b, 0) * 100) / 100;
+
+let resultHTML = `<h3>📊 Resultados:</h3>`;
+resultHTML += `<p><strong>Suma total del consumo bimestral:</strong> ${total.toFixed(2)} kWh</p>`;
+resultHTML += `<p><strong>Promedio de consumo:</strong> ${avg.toFixed(2)} kWh por bimestre</p>`;
+
+resultHTML += "<h4>📐 Cálculos paso a paso:</h4><ol>";
+resultHTML += `<li>Promedio: ${avg.toFixed(2)} kWh/bimestre</li>`;
+// Limit to 2 decimals for daily consumption
+resultHTML += `<li>Consumo diario = ${step3.toFixed(2)} kWh/día</li>`;
+// Limit to 2 decimals for hourly consumption
+resultHTML += `<li>Consumo por hora = ${step4.toFixed(2)} kWh/h</li>`;
+// Limit to 2 decimals for efficiency
+resultHTML += `<li>Eficiencia estimada = ${step5.toFixed(2)} kWh/h ajustado</li>`;
+// Round to the nearest whole number for required panels
+resultHTML += `<li>Paneles requeridos = ${Math.ceil(step6)} paneles</li>`;
+resultHTML += "</ol>";
+
+// Set result HTML
+document.getElementById("results").innerHTML = resultHTML;
+
+
+
+      document.getElementById('results').innerHTML = resultHTML;
+
+      // Tabla de crecimiento
+      /*const table = document.createElement('table');
+      let header = "<tr>";
+      for (let c = 1; c <= 5; c++) {
+        header += `<th>Año ${c}</th>`;
+      }
+      header += "</tr>";
+      table.innerHTML += header;
+
+      for (let r = 0; r < 10; r++) {
+        let row = "<tr>";
+        for (let c = 1; c <= 5; c++) {
+          let value = avg * Math.pow(1 + interest / 100, c + r);
+          row += `<td>${value.toFixed(2)}</td>`;
+        }
+        row += "</tr>";
+        table.innerHTML += row;
+      }
+
+      const tableSection = document.getElementById('table-section');
+      tableSection.innerHTML = "<h3>📈 Crecimiento proyectado con inflación:</h3>";
+      tableSection.appendChild(table);*/
+    }
+
+    function downloadPDF() {
+  const element = document.getElementById("page-content");
+
+  const opt = {
+    margin:       0.5, // inches
+    filename:     'resumen_paneles_solares.pdf',
+    image:        { type: 'jpeg', quality: 0.98 },
+    html2canvas:  { scale: 2 }, // higher scale = better quality
+    jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
+  };
+
+  html2pdf().set(opt).from(element).save();
+}
+
+  </script>
+</body>
+</html>
